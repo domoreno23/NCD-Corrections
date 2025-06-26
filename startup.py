@@ -7,10 +7,14 @@ def main():
     '''Getting the user matrix file'''
     
     user_matrix_file = input("Please enter the path to the distance matrix file: ")
+    #Creating an instance of CorrectionTools and correctorInstance to be used throughout program
+    CorrectionToolsInstance = None
+    correctorInstance = None
     try:
-        with open(user_matrix_file, 'r') as file:
-            # Inputting the file into an instance of CorrectionTools
-            inputMatrix = CorrectionTools.CorrectionTools(user_matrix_file).createMatrix()
+        
+        # Creating the matrix form the input file
+        CorrectionToolsInstance = CorrectionTools.CorrectionTools(user_matrix_file)
+        inputMatrix = CorrectionToolsInstance.createMatrix()
             
     except FileNotFoundError:
         print("Error: File not found.")
@@ -22,8 +26,8 @@ def main():
     
     user_FASTA_file = input("Please enter the path to the FASTA file: ")
     try:
-        with open(user_FASTA_file, 'r') as file:
-            correctionInstance = Corrector(inputMatrix, user_FASTA_file)
+        correctorInstance = Corrector.Corrector(inputMatrix, user_FASTA_file)
+        #CorrectionToolsInstance 
     except FileNotFoundError:
         print("Error: File not found.")
     except Exception as e:
@@ -34,15 +38,29 @@ def main():
     user_model_input = input("Jukes Cantor (1), F81 (2), HKY85 (3)")
     
     
+    #Takes instance of the inputted matrix and runs the selected correction
+    #NOTE: Implement feature that allows to have multiple corrections within a session
     try:
         if user_model_input == "1":
-            jukesMatrix = correctionInstance.jukesCantor()
-            print(jukesMatrix)
+            
+            jukesMatrix = correctorInstance.jukesCantor()
+            normalizedJukesMatrix = CorrectionToolsInstance.normalize(inputMatrix= jukesMatrix)
+            
+            #Writing the corrected Matrix to an output file
+            correctedMatrixFile = open("correctedJukesMatrix.txt", "w")
+            
+            for i in range(len(normalizedJukesMatrix)):
+                for j in range(len(normalizedJukesMatrix[i])):
+                    correctedMatrixFile.write(str(normalizedJukesMatrix[i][j]))
+                    correctedMatrixFile.write(" ")
+                correctedMatrixFile.write("\n")
+            print("Matrix written to correctedJukesMatrix.txt")
+            correctedMatrixFile.close()
         elif user_model_input == "2":
-            F81Matrix = correctionInstance.F81()
+            F81Matrix = correctorInstance.F81()
             print(F81Matrix)
         elif user_model_input == "3":
-            HKy85Matrix = correctionInstance.HKY85()
+            HKy85Matrix = correctorInstance.HKY85()
             print(HKy85Matrix)
         else:
             print("Invalid input. Please try a number 1 - 3.")
@@ -50,30 +68,5 @@ def main():
         print(f"An error occurred: {e}")
 
 
-'''
-if __name__ == '__main__':
-
-    tools = CorrectionTools.CorrectionTools('LargeListMatrixMfc2_37_0_0.txt')
-    tools.createMatrix()
-    dists = tools.distanceMatrix
-    print(dists)
-
-    corr = Corrector.Corrector(dists, "gene447_final_unaligned.txt")
-
-    ### Below are the calls to the correction methods
-    ###Jukes Cantor and F81 work. I can't remember if I ever got F81Mod running
-
-    # corr.jukesCantor()
-    # jukes = corr.JukesCantorMatrix
-    # # print(jukes)
-    #
-    # corr.F81()
-    # f81 = corr.F81Matrix
-    # print(f81)
-    # print(corr.frequenciesPerSequence)
-    # print(len(corr.frequenciesPerSequence))
-
-    # corr.F81Mod()
-    # f81Mod = corr.F81ModMatrix
-    # print(f81Mod)
-'''
+if __name__ == "__main__":
+    main()

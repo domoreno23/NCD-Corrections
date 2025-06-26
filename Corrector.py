@@ -5,6 +5,7 @@
 # - functions for each correction
 
 import math
+import numpy as np 
 class Corrector:
 
     def __init__(self, distanceMatrix, sequenceFile = None):
@@ -14,6 +15,7 @@ class Corrector:
         self.HKY85Matrix = []
         self.T92Matrix = []
         self.TN93Matrix = []
+        self.GTRMatrix = []
 
 
         #Needed for F81 and F81 MOD
@@ -27,6 +29,12 @@ class Corrector:
             self.frequenciesForFile = {"A" : 0, "T": 0, "G": 0, "C": 0, "Total": 0}
             self.frequenciesPerSequence = [] #list of dicts: each inner dict i contains the ATGC freqs for the associated sequence i
             self.findFrequencies()
+            
+            
+    ##Will be used for methods that require the use of transversion and transition rates
+    def __calculateP_and_Q(self):
+        
+        pass
 
 
     def findFrequencies(self):
@@ -52,10 +60,21 @@ class Corrector:
             self.frequenciesPerSequence.append(freqsForSequence)
             
     
-    
 
     def jukesCantor(self):
-        print(self.originalDistances)
+    # Separate labels and numeric data
+        labels = [row[0] for row in self.originalDistances]
+        data = [row[1:] for row in self.originalDistances]
+        jukesOriginal = np.array(data, dtype=float)
+        # Apply the Jukes-Cantor correction
+        corrected = (-0.75 * np.log(1 - (jukesOriginal * (3/4))))
+        # Combine labels back with corrected data
+        self.JukesCantorMatrix = [[label] + list(row) for label, row in zip(labels, corrected)]
+        return self.JukesCantorMatrix
+        
+        '''
+    def jukesCantor(self):
+        ##print(self.originalDistances)
         # corrMatrix = []
         # print(normDistMatrix)
         self.JukesCantorMatrix.append(self.originalDistances[0])
@@ -82,15 +101,9 @@ class Corrector:
                     # normDistMatrix[i][j] = (-.75 * (math.log(x)))
                     corrList.append((-.75 * (math.log(x))))
             self.JukesCantorMatrix.append(corrList)
-
-        ### Re-normalize correct distances to [0-1]
-        # print("jukes")
-        # print(corrMatrix)
-        # normCorrDist = normalize(corrMatrix)
-        # print(normCorrDist)
-        # return normCorrDist
+        
         return self.JukesCantorMatrix
-
+        '''
     def F81(self):
 
         #Need frequencies for whole file
@@ -308,3 +321,49 @@ class Corrector:
             self.TN93Matrix.append(corrList)
             
         return self.TN93Matrix
+    
+    def GTR(self):
+        print(self.originalDistances)
+        
+        self.GTRMatrix.append(self.originalDistances[0])
+        ##Setting perameters for GTR
+        
+        ##Rate of A <-> C
+        alpha = 0
+        
+        ## Rate of A <-> C
+        beta = 0
+        
+        ## Rate of A <-> T 
+        Gamma = 0
+        
+        ## Rate of G <-> C rate
+        delta = 0
+        
+        ## Rate of G <-> T
+        epsilon = 0
+        
+        ##Rate of C <-> T
+        eta = 0
+        
+        for i in range(1, len(self.originalDistances)):
+            # print(normDistMatrix[i])
+            corrList = []
+            corrList.append(self.originalDistances[i][0])
+            for j in range(1, len(self.originalDistances[i])):
+                dist = float(self.originalDistances[i][j])
+                if dist == 0.0:
+                    # normDistMatrix[i][j] = dist
+                    corrList.append(dist)
+                else:  # correction
+                    ##
+                    # Since distances are normalized
+                    ##
+                    x = 0
+                    # print(dist)
+                    # normDistMatrix[i][j] = (-.75 * (math.log(x)))
+                    corrList.append(x)
+            self.GTRMatrix.append(corrList)
+            
+        return self.GTRMatrix
+    
