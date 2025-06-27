@@ -6,6 +6,8 @@
 
 import math
 import numpy as np 
+from scipy.optimize import minimize
+
 class Corrector:
 
     def __init__(self, distanceMatrix, sequenceFile = None):
@@ -31,10 +33,31 @@ class Corrector:
             self.findFrequencies()
             
             
-    ##Will be used for methods that require the use of transversion and transition rates
-    def __calculateP_and_Q(self):
+    '''Will be used for methods that require the use of transversion and transition rates, and p and q
+    INPUT: self.originalDistances(first row as an array for all unique distances) and modelDistances (accumulate the distances in the model function first)
+    '''
+    
+    def calculateP_and_Q(self,p_initial, q_initial, originalDistances, modelDistances):
+        ##Must be outside
+        #p_initial, q_initial = 0.1
+        #Get model distances
+        all_differences = np.sum((originalDistances - modelDistances) ** 2)
+        #Collecting all unique distances into a 1-d array
+        observed_distances = []
+        matrix = np.array(originalDistances)
+        n = matrix.shape[0]
+        for i in range (n):
+            for j in range (i+1, n):
+                observed_distances.append(matrix[i][j])
+        observed_distances = np.array(observed_distances)
         
-        pass
+        #Minimizing the loss
+        result = minimize(all_differences, x0=[p_initial, q_initial], args=(observed_distances,), bounds=[(0,1),(0,1)])
+        
+        #Returning optimized p and q
+        p = result.x[0]
+        q = result.x[1]
+        return p, q
 
 
     def findFrequencies(self):
@@ -67,7 +90,7 @@ class Corrector:
         data = [row[1:] for row in self.originalDistances]
         jukesOriginal = np.array(data, dtype=float)
         # Apply the Jukes-Cantor correction
-        corrected = (-0.75 * np.log(1 - (jukesOriginal * (3/4))))
+        corrected = (-0.75 * np.log(1 - ((4/3) * jukesOriginal)))
         # Combine labels back with corrected data
         self.JukesCantorMatrix = [[label] + list(row) for label, row in zip(labels, corrected)]
         return self.JukesCantorMatrix
@@ -104,6 +127,8 @@ class Corrector:
         
         return self.JukesCantorMatrix
         '''
+        
+    
     def F81(self):
 
         #Need frequencies for whole file
@@ -216,7 +241,7 @@ class Corrector:
         k = 0
         
         b = 1 / (2 * (freqA + freqG) + (freqC + freqT) + 2*k * ((freqA*freqG) + (freqC * freqT)))
-        print(b)
+        
         
         for i in range(1, len(self.originalDistances)):
             # print(normDistMatrix[i])
@@ -232,17 +257,11 @@ class Corrector:
                     # Since distances are normalized
                     ##
                     x = (dist * b)
-                    # print(dist)
-                    # normDistMatrix[i][j] = (-.75 * (math.log(x)))
+                    
                     corrList.append(x)
             self.HKY85Matrix.append(corrList)
 
-        ### Re-normalize correct distances to [0-1]
-        # print("HKY85 Corrections")
-        # print(corrMatrix)
-        # normCorrDist = normalize(corrMatrix)
-        # print(normCorrDist)
-        # return normCorrDist
+        
         return self.HKY85Matrix
     
     
@@ -260,10 +279,10 @@ class Corrector:
         G_and_C = (freqG + freqC)/2
         
         #where p is the proportion of sites that show transitional differences and q is the proportion of sites that show transversional differences.
-        p = 0
-        q = 0
+        p_guess = 0.1
+        q_guess = 0.1
         h = 2 * G_and_C * (1 - G_and_C)
-        d = -h * math.log(1 - (p/h) - q) - 1/2 * (1 - h) * math.log(1-2*q)
+        d = -h * math.log(1 - (p_guess/h) - q_guess) - 1/2 * (1 - h) * math.log(1-2*q_guess)
         
         for i in range(1, len(self.originalDistances)):
             # print(normDistMatrix[i])
@@ -275,15 +294,9 @@ class Corrector:
                     # normDistMatrix[i][j] = dist
                     corrList.append(dist)
                 else:  # correction
-                    ##
-                    # Since distances are normalized
-                    ##
-                    x = 0
-                    # print(dist)
-                    # normDistMatrix[i][j] = (-.75 * (math.log(x)))
-                    corrList.append(x)
+                    corrList.append(d)
             self.T92Matrix.append(corrList)
-            
+        
         return self.T92Matrix
     
     def TN93(self):
