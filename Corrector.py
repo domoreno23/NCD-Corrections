@@ -7,6 +7,7 @@
 import math
 import numpy as np 
 from scipy.optimize import minimize
+import PerameterOptimizer
 
 class Corrector:
 
@@ -229,38 +230,41 @@ class Corrector:
         return self.HKY85Matrix
     
     
-    ##NOTE: ask if we could multiply matricies in a while loop until the multiplaction converges??
     def T92(self):
+        labels = [row[0] for row in self.originalDistances]
+        data = [row[1:] for row in self.originalDistances]
+        T92InitialMatrix = np.array(data, dtype=float)
         
-        self.T92Matrix.append(self.originalDistances[0])
-        ##Setting perameters for T92
+        
         freqG = self.frequenciesForFile["G"] / self.frequenciesForFile["Total"]
         freqC = self.frequenciesForFile["C"] / self.frequenciesForFile["Total"]
-        
-        
-        ##NOTE: normalize frequencies before production use
         G_and_C = (freqG + freqC)/2
+        #Where p is the proportion of sites that show transitional differences and q is the proportion of sites that show transversional differences.
         
-        #where p is the proportion of sites that show transitional differences and q is the proportion of sites that show transversional differences.
-        p_guess = 0.1
+        #NOTE: Transitions are 15x more likly than transversions
+        p_guess = 1.5
         q_guess = 0.1
-        h = 2 * G_and_C * (1 - G_and_C)
-        d = -h * math.log(1 - (p_guess/h) - q_guess) - 1/2 * (1 - h) * math.log(1-2*q_guess)
         
-        for i in range(1, len(self.originalDistances)):
-            # print(normDistMatrix[i])
-            corrList = []
-            corrList.append(self.originalDistances[i][0])
-            for j in range(1, len(self.originalDistances[i])):
-                dist = float(self.originalDistances[i][j])
-                if dist == 0.0:
-                    # normDistMatrix[i][j] = dist
-                    corrList.append(dist)
-                else:  # correction
-                    corrList.append(d)
-            self.T92Matrix.append(corrList)
+        #3 total perameters needed
+        initialPremeters = [p_guess, q_guess, G_and_C]
+        
+        #Returns list of optimized perameters
+        optimizer = PerameterOptimizer.PeramterOptimizer(originalDistances=self.originalDistances, sequenceFile=self.frequenciesForFile)
+        bounds = [(0, None), (0, None), (0, None)] 
+        optimizedPerameters = optimizer.optimize(modelNumber=2, initialPerams=initialPremeters, perameterBounds=bounds)
+        
+        #Optimized perameters to be used in final matrix
+        p_optimized = optimizedPerameters[0]
+        q_optimized = optimizedPerameters[1]
+        
+        h = 2 * G_and_C * (1 - G_and_C)
+        d = -h * math.log(1 - (p_optimized/h) - q_optimized) - 1/2 * (1 - h) * math.log(1-(2*q_optimized))
+        
+        correctedT92Matrix = T92InitialMatrix * abs(d)
+        self.T92Matrix = [[label] + list(row) for label, row in zip(labels, correctedT92Matrix)]
         
         return self.T92Matrix
+        
     
     def TN93(self):
         print(self.originalDistances)
