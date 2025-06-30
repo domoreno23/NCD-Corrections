@@ -36,7 +36,7 @@ class Corrector:
     '''Will be used for methods that require the use of transversion and transition rates, and p and q
     INPUT: self.originalDistances(first row as an array for all unique distances) and modelDistances (accumulate the distances in the model function first)
     '''
-    
+    #NOTE: Currently being refactored PeramterOptimizer class
     def calculateP_and_Q(self,p_initial, q_initial, originalDistances, modelDistances):
         ##Must be outside
         #p_initial, q_initial = 0.1
@@ -95,40 +95,7 @@ class Corrector:
         self.JukesCantorMatrix = [[label] + list(row) for label, row in zip(labels, corrected)]
         return self.JukesCantorMatrix
         
-        '''
-    def jukesCantor(self):
-        ##print(self.originalDistances)
-        # corrMatrix = []
-        # print(normDistMatrix)
-        self.JukesCantorMatrix.append(self.originalDistances[0])
-        ##
-        # normalize this matrix based on its min/max ---  between 0 and 1
-        ##
-        # print(normDistMatrix)
-        for i in range(1, len(self.originalDistances)):
-            # print(normDistMatrix[i])
-            corrList = []
-            corrList.append(self.originalDistances[i][0])
-            for j in range(1, len(self.originalDistances[i])):
-                dist = float(self.originalDistances[i][j])
-                if dist == 0.0:
-                    # normDistMatrix[i][j] = dist
-                    corrList.append(dist)
-                else:  # correction
-                    ##
-                    # Since distances are normalized
-                    # ==> multiply by .74 to ensure range [0-.74] for JUKES_CANTOR requirement
-                    ##
-                    x = 1 - (dist * .74 / .75)
-                    # print(dist)
-                    # normDistMatrix[i][j] = (-.75 * (math.log(x)))
-                    corrList.append((-.75 * (math.log(x))))
-            self.JukesCantorMatrix.append(corrList)
         
-        return self.JukesCantorMatrix
-        '''
-        
-    
     def F81(self):
 
         #Need frequencies for whole file
@@ -222,9 +189,6 @@ class Corrector:
     
     '''HKY85, distinguishes between the rate of transitions and transversions (using the κ parameter), and it allows unequal base frequencies'''
     def HKY85(self):
-        #Show user the original distance matrix
-        print(self.originalDistances)
-        
         # corrMatrix = []
         # print(normDistMatrix)
         self.HKY85Matrix.append(self.originalDistances[0])
@@ -267,7 +231,6 @@ class Corrector:
     
     ##NOTE: ask if we could multiply matricies in a while loop until the multiplaction converges??
     def T92(self):
-        print(self.originalDistances)
         
         self.T92Matrix.append(self.originalDistances[0])
         ##Setting perameters for T92
