@@ -257,10 +257,20 @@ class Corrector:
         p_optimized = optimizedPerameters[0]
         q_optimized = optimizedPerameters[1]
         
-        h = 2 * G_and_C * (1 - G_and_C)
-        d = -h * math.log(1 - (p_optimized/h) - q_optimized) - 1/2 * (1 - h) * math.log(1-(2*q_optimized))
+        print(p_optimized, q_optimized)
         
-        correctedT92Matrix = T92InitialMatrix * abs(d)
+        h = 2 * G_and_C * (1 - G_and_C)
+        firstLog = abs(1 - (p_optimized/h) - q_optimized)
+        secondLog = abs(1 - (2*q_optimized))
+        if firstLog < 0:
+            firstLog = 0.01
+        if secondLog < 0:
+            secondLog = 0.01
+            
+        d = -h * math.log(firstLog) - 1/2 * (1 - h) * math.log(secondLog)
+        
+        
+        correctedT92Matrix = T92InitialMatrix * d
         self.T92Matrix = [[label] + list(row) for label, row in zip(labels, correctedT92Matrix)]
         
         return self.T92Matrix

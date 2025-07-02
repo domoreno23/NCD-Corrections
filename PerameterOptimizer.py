@@ -65,9 +65,16 @@ class PeramterOptimizer:
         p_initial, q_initial, G_and_C = perams[0], perams[1], perams[2]
         
         h = 2 * G_and_C * (1 - G_and_C)
-        d = -h * math.log(1 - (p_initial/h) - q_initial) - 1/2 * (1 - h) * math.log(1-(2*q_initial))
+        firstLog = abs(1 - (p_initial/h) - q_initial)
+        secondLog = abs(1 - (2*q_initial))
+        if firstLog < 0:
+            firstLog = 0.01
+        if secondLog < 0:
+            secondLog = 0.01
+            
+        d = -h * math.log(firstLog) - 1/2 * (1 - h) * math.log(secondLog)
         
-        self.T92Matrix = T92InitialMatrix * abs(d)
+        self.T92Matrix = T92InitialMatrix * d
         
         return np.array(self.T92Matrix)
     
@@ -168,8 +175,7 @@ class PeramterOptimizer:
             model_distances = self.TN93(perams)
         elif modelNumber == 4:
             model_distances = self.GTR(perams)
-        print("Observed shape:", observed_distances.shape)
-        print("Model shape:", model_distances.shape)
+        
         
         return np.sum((observed_distances - model_distances) ** 2)
     
