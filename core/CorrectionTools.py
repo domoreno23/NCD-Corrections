@@ -1,4 +1,4 @@
-# this class provides necessary tools for pre- and post- data processing
+'''Interface for creating and normalizing a distance matrix'''
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 

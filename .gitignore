@@ -2,3 +2,7 @@
 *.txt
 *.fasta
 *.fna
+*.csv
+correction_output
+csv_correction_output
+test_files

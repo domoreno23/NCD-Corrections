@@ -1,5 +1,9 @@
-import CorrectionTools
-import Corrector
+'''
+Entry point for the NCD corrections program.
+This script initializes the program, prompts the user for input files, and starts the correction process.
+'''
+import core.CorrectionTools as CorrectionTools
+import core.Corrector as Corrector
 
 def main():
     print("Welcome to the NCD corrections program!")
@@ -35,7 +39,7 @@ def main():
 
     #Creating the corrected distance matrix that the user had input
     print("Please choose a correction model:")
-    user_model_input = input("Jukes Cantor (1), F81 (2), HKY85 (3), T92 (4), TN93 (5), GTR (6):")
+    user_model_input = input("Jukes Cantor (1), K80 (2), K81 (3), T92 (4), TN93 (5):\n")
     
     
     #Takes instance of the inputted matrix and runs the selected correction
@@ -53,34 +57,54 @@ def main():
                 correctedMatrixFile.write("\n")
             print("Matrix written to correction_output/correctedJukesMatrix.txt")
             correctedMatrixFile.close()
-            
         elif user_model_input == "2":
-            F81Matrix = correctorInstance.F81()
-            print(F81Matrix)
+            K80Matrix = correctorInstance.K80()
+            normalizedK80Matrix = CorrectionToolsInstance.normalize(inputMatrix= K80Matrix)
+            correctedMatrixFile = open("correction_output/correctedK80Matrix.txt", "w")
+            for i in range(len(normalizedK80Matrix)):
+                for j in range(len(normalizedK80Matrix[i])):
+                    correctedMatrixFile.write(str(normalizedK80Matrix[i][j]))
+                    correctedMatrixFile.write(" ")
+                correctedMatrixFile.write("\n")
+            print("Matrix written to correction_output/correctedK80Matrix.txt")
+            correctedMatrixFile.close()
         elif user_model_input == "3":
-            HKy85Matrix = correctorInstance.HKY85()
-            print(HKy85Matrix)
+            K81Matrix = correctorInstance.K81()
+            normalizedK81Matrix = CorrectionToolsInstance.normalize(inputMatrix= K81Matrix)
+            correctedMatrixFile = open("correction_output/correctedK81Matrix.txt", "w")
+            for i in range(len(normalizedK81Matrix)):
+                for j in range(len(normalizedK81Matrix[i])):
+                    correctedMatrixFile.write(str(normalizedK81Matrix[i][j]))
+                    correctedMatrixFile.write(" ")
+                correctedMatrixFile.write("\n")
+            print("Matrix written to correction_output/correctedK81Matrix.txt")
+            correctedMatrixFile.close()
         elif user_model_input == "4":
             T92Matrix = correctorInstance.T92()
             normalizedT92Matrix = CorrectionToolsInstance.normalize(inputMatrix= T92Matrix)
             #Writing the corrected Matrix to an output file
-            correctedMatrixFile = open("correction_output/correctedT92Matrix.txt", "w")
+            correctedMatrixFile = open("correction_output/correctedT92Matrix4.txt", "w")
             for i in range(len(normalizedT92Matrix)):
                 for j in range(len(normalizedT92Matrix[i])):
                     correctedMatrixFile.write(str(normalizedT92Matrix[i][j]))
                     correctedMatrixFile.write(" ")
                 correctedMatrixFile.write("\n")
-            print("Matrix written to correction_output/correctedT92Matrix.txt")
+            print("Matrix written to correction_output/correctedT92Matrix4.txt")
             correctedMatrixFile.close()
-            
         elif user_model_input == "5":
             TN93Matrix = correctorInstance.TN93()
-            print(TN93Matrix)
-        elif user_model_input == "6":
-            GTRMatrix = correctorInstance.GTR()
-            print(GTRMatrix)
+            normalizedTN93Matrix = CorrectionToolsInstance.normalize(inputMatrix= TN93Matrix)
+            #Writing the corrected Matrix to an output file
+            correctedMatrixFile = open("correction_output/correctedTN93Matrix.txt", "w")
+            for i in range(len(normalizedTN93Matrix)):
+                for j in range(len(normalizedTN93Matrix[i])):
+                    correctedMatrixFile.write(str(normalizedTN93Matrix[i][j]))
+                    correctedMatrixFile.write(" ")
+                correctedMatrixFile.write("\n")
+            print("Matrix written to correction_output/correctedTN93Matrix.txt")
+            correctedMatrixFile.close()
         else:
-            print("Invalid input. Please try a number 1 - 6.")
+            print("Invalid input. Please try a number 1 - 5.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
