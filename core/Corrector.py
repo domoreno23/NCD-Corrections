@@ -3,10 +3,16 @@
 - class variable for original distanceMatrix
 - class variable to store each corrected matrix (one for each correction)
 - functions for each correction
+
+Euclidean distance calculation of all entries in the distance matrix on jukes cantor
+Output: Euclidean distance matrix 
+- add up entries and divide them by the number of (entries^2 - entries)
+- standard deviation of the entries
+
+look into compressors for dna sequences such as mfcompressed 
 '''
 import math
 import numpy as np 
-from scipy.optimize import minimize
 import core.PerameterOptimizer as PerameterOptimizer
 
 class Corrector:
@@ -94,8 +100,12 @@ class Corrector:
         
         print("Optimized P: " + str(optimized_p) + " Optimized Q: " + str(optimized_q))
         
-        firstLog = abs(1 - 2*optimized_p - optimized_q)
-        root = abs(1 - 2*optimized_q)
+        
+        p_test = optimized_p
+        q_test = optimized_q
+        
+        firstLog = abs(1 - 2*p_test - q_test)
+        root = abs(1 - 2*p_test)
         if firstLog == 0:
             firstLog = 0.01
         if root == 0:
@@ -165,6 +175,7 @@ class Corrector:
         #Where p is the proportion of sites that show transitional differences and q is the proportion of sites that show transversional differences.
         
         #NOTE: Transitions are 15x more likly than transversions
+        
         p_guess = 0.15
         q_guess = 0.01
         
@@ -184,6 +195,7 @@ class Corrector:
         
         print("Optimized P: " + str(p_optimized) + " Optimized Q: " + str(q_optimized))
         
+        
         #Ensuring the log values are positive values
         h = 2 * G_and_C * (1 - G_and_C)
         firstLog = abs(1 - (p_optimized/h) - q_optimized)
@@ -195,8 +207,8 @@ class Corrector:
             
         d = -h * math.log(firstLog) - 1/2 * (1 - h) * math.log(secondLog)
         
-        print("First Log:" + str(firstLog))
-        print("Second Log:" + str(secondLog))
+        #print("First Log:" + str(firstLog))
+        #print("Second Log:" + str(secondLog))
         
         correctedT92Matrix = T92InitialMatrix * d
         self.T92Matrix = [[label] + list(row) for label, row in zip(labels, correctedT92Matrix)]
@@ -232,13 +244,13 @@ class Corrector:
         optimized = PerameterOptimizer.PeramterOptimizer(originalDistances=self.originalDistances, sequenceFile=self.frequenciesForFile)
         bounds = [(0, None), (0, None), (0, None), (0, None)]
         optimizedPerameters = optimized.optimize(modelNumber=5, initialPerams=initialPerameters, perameterBounds=bounds)
-        
         alpha_1_optimized = optimizedPerameters[0]
         alpha_2_optimized = optimizedPerameters[1]
         beta_optimized = optimizedPerameters[2]
         a_optimized = optimizedPerameters[3]
         
-        print("Optimized Alpha 1: " + str(alpha_1_optimized) + " Optimized Alpha 2: " + str(alpha_2_optimized) + " Optimized Beta: " + str(beta_optimized) + " Optimized A: " + str(a_optimized))
+        #print("Optimized Alpha 1: " + str(alpha_1_optimized) + " Optimized Alpha 2: " + str(alpha_2_optimized) + " Optimized Beta: " + str(beta_optimized) + " Optimized A: " + str(a_optimized))
+        
         #Using optimized perameters to set up formulas
         #NOTE: t = 1 for evolutionary time thus not needed here
         

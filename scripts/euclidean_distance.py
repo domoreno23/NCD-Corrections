@@ -16,7 +16,7 @@ def euclidean_distance(matrix1, matrix2):
   
   data_1 = np.array(data_1, dtype=float)
   data_2 = np.array(data_2, dtype=float)
-  
+  print(str(data_1.shape), str(data_2.shape))
   if data_1.shape != data_2.shape:
     print(data_1.shape, data_2.shape)
     raise ValueError("Matrices must have the same dimensions for Euclidean distance calculation.")
@@ -26,6 +26,6 @@ def euclidean_distance(matrix1, matrix2):
   
   return distance
 
-distance = euclidean_distance(matrix1="test_files/LargeListMatrix7Zip_153_0_0.txt", matrix2="correction_output/correctedJukesMatrix.txt")
+distance = euclidean_distance(matrix1="test_files/LargeListMatrix7Zip_153_0_0.txt", matrix2="correction_output/correctedTN93MatrixOptimized.txt")
 
 print(f"The Euclidean distance between the two matrices is: {distance}")
