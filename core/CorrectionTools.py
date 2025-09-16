@@ -23,13 +23,14 @@ class CorrectionTools:
         return self.distanceMatrix
     
     
+    
     def normalize(self, inputMatrix): #preprocessing
         # Extract only the numeric part for normalization
         labels = [row[0] for row in inputMatrix]
         data = [row[1:] for row in inputMatrix]
+        
         normalizer = MinMaxScaler()
         normalized_data = normalizer.fit_transform(data)
-        # Combine labels back with normalized data
         normalizedMatrix = [[label] + list(row) for label, row in zip(labels, normalized_data)]
         self.normalizedMatrix = normalizedMatrix
         return self.normalizedMatrix

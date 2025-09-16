@@ -1,6 +1,6 @@
 '''Interface for optimizing perameters of an evolutionary model
-1. Uses arbitrary gusses for intial perameter values
-2. Utilizes a MLE calculation to optimize perameters
+1. Uses arbitrary guesses below 1 for intial perameter values
+2. Utilizes a Maximum Likelihood calculation to optimize perameters
 3. ONLY returns optimized perameters to be used by the Corrector class
 '''
 import numpy as np
@@ -28,7 +28,7 @@ class PeramterOptimizer:
         if root == 0:
             root = 0.01
         
-        self.K80Matrix = K80InitialMatrix * (-0.50 * math.log((firstLog)) * math.sqrt(root))
+        self.K80Matrix = K80InitialMatrix * (-0.50 * math.log((firstLog) * math.sqrt(root)))
         
         return np.array(self.K80Matrix)
     
@@ -41,9 +41,9 @@ class PeramterOptimizer:
         lamb_2 = -4 * (alpha + gamma)
         lamb_3 = -4 * (beta + gamma)
         
-        P = 1 - math.exp(lamb_1) - math.exp(lamb_2) - math.exp(lamb_3)
-        Q = 1 - math.exp(lamb_1) + math.exp(lamb_2) - math.exp(lamb_3)
-        R = 1 - math.exp(lamb_1) + math.exp(lamb_2) - math.exp(lamb_3)
+        P = (1 - math.exp(lamb_1) - math.exp(lamb_2) + math.exp(lamb_3)) / 4 
+        Q = (1 - math.exp(lamb_1) + math.exp(lamb_2) - math.exp(lamb_3)) / 4
+        R = (1 + math.exp(lamb_1) - math.exp(lamb_2) - math.exp(lamb_3)) / 4
         
         log_func = abs((1 - 2*P - 2*Q) * (1 - 2*P - 2*R) * (1 - 2*Q - 2*R))
         

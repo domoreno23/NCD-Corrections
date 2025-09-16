@@ -29,4 +29,4 @@ def convert_txt_to_csv_file(input_filepath, output_filepath):
     except Exception as e:
         print(f"An error occurred: {e}")
         
-convert_txt_to_csv_file('correction_output/correctedTN93MatrixTest.txt', 'csv_correction_output/correctedTN93MatrixTest.csv')
+convert_txt_to_csv_file('test_files/average_70.txt', 'csv_correction_output/average_70.csv')

@@ -64,17 +64,20 @@ class Corrector:
                     freqsForSequence["Total"] += 1
             self.frequenciesPerSequence.append(freqsForSequence)
             
-    
 
     def jukesCantor(self):
         labels = [row[0] for row in self.originalDistances]
         data = [row[1:] for row in self.originalDistances]
         jukesOriginal = np.array(data, dtype=float)
 
-        log_func = 1 - ((4/3) * jukesOriginal)
-        log_func = np.where(log_func <= 0, 0.01, log_func)  # Avoid log(0) or log(negative)
+        # Apply the Jukes-Cantor correction
+        log_func = 1 - ((4 / 3) * jukesOriginal)
+        log_func = np.where(log_func <= 0, 0.01, log_func)  # Prevent log(0) or log(negative)
 
         corrected = -0.75 * np.log(log_func)
+        #reCorrect = self.correct_anomolies(corrected=corrected, originalDistances=data)
+        
+        # Reattach labels
         self.JukesCantorMatrix = [[label] + list(row) for label, row in zip(labels, corrected)]
         return self.JukesCantorMatrix
         
@@ -112,7 +115,9 @@ class Corrector:
             root = 0.01
         
         #Apply the K80 correction with optimized perameters
-        correctedK80Matrix = K80Original * (-0.50 * math.log(firstLog) * math.sqrt(root))
+        correctedK80Matrix = K80Original * (-0.50 * math.log((firstLog) * math.sqrt(root)))
+        
+        #reCorrected = self.correct_anomolies(corrected=correctedK80Matrix, originalDistances=data)
         
         self.K80Matrix = [[label] + list(row) for label, row in zip(labels, correctedK80Matrix)]
         
@@ -147,9 +152,9 @@ class Corrector:
         lamb_2 = -4 * (alpha + gamma)
         lamb_3 = -4 * (beta + gamma)
         
-        P = 1 - math.exp(lamb_1) - math.exp(lamb_2) - math.exp(lamb_3)
-        Q = 1 - math.exp(lamb_1) + math.exp(lamb_2) - math.exp(lamb_3)
-        R = 1 - math.exp(lamb_1) + math.exp(lamb_2) - math.exp(lamb_3)
+        P = (1 - math.exp(lamb_1) - math.exp(lamb_2) + math.exp(lamb_3)) / 4
+        Q = (1 - math.exp(lamb_1) + math.exp(lamb_2) - math.exp(lamb_3)) / 4
+        R = (1 + math.exp(lamb_1) - math.exp(lamb_2) - math.exp(lamb_3)) / 4
         
         log_func = abs((1 - 2*P - 2*Q) * (1 - 2*P - 2*R) * (1 - 2*Q - 2*R))
         
@@ -158,6 +163,8 @@ class Corrector:
             print("Log func = 0")
         
         correctedK81Matrix = K81Original * (-(1/4) * math.log(log_func))
+        
+        #reCorrected = self.correct_anomolies(corrected=correctedK81Matrix, originalDistances=data)
         
         self.K81Matrix = [[label] + list(row) for label, row in zip(labels, correctedK81Matrix)]
         
@@ -209,9 +216,10 @@ class Corrector:
         
         #print("First Log:" + str(firstLog))
         #print("Second Log:" + str(secondLog))
+        corrected = T92InitialMatrix * abs(d)
+        #reCorrected = self.correct_anomolies(corrected=corrected, originalDistances=data)
         
-        correctedT92Matrix = T92InitialMatrix * d
-        self.T92Matrix = [[label] + list(row) for label, row in zip(labels, correctedT92Matrix)]
+        self.T92Matrix = [[label] + list(row) for label, row in zip(labels, corrected)]
         
         return self.T92Matrix
         
@@ -280,12 +288,6 @@ class Corrector:
             print("Warning: freqT * freqC is zero or near zero, setting to epsilon.")
             ft_fc = epsilon
 
-        # P_1 and P_2 denominators
-        #P_1 = abs((2 * freqA * freqG) / g_r * (g_r + g_y * math.exp(-2 * beta_optimized) - math.exp(-2 * (g_r * alpha_1_optimized + g_y * beta_optimized))))
-        #P_2 = abs((2 * freqT * freqC) / g_y * (g_y + g_r * math.exp(-2 * beta_optimized) - math.exp(-2 * (g_y * alpha_2_optimized + g_r * beta_optimized))))
-        #P_1 = abs(((2 * freqA * freqG) / g_r) * (g_r - (a_optimized / (a_optimized + 2 * (g_r * alpha_1_optimized + g_y * beta_optimized)))**a_optimized) + g_y * (a_optimized/ a_optimized + 2 * beta_optimized)**a_optimized)
-        
-        #P_2 = abs(((2 * freqT * freqC) / g_y) * (g_y - (a_optimized / (a_optimized + 2 * (g_y * alpha_2_optimized + g_r * beta_optimized)))**a_optimized) + g_r * (a_optimized/ a_optimized + 2 * beta_optimized)**a_optimized)
         epsilon = 1e-8
 
         # Safe denominator
@@ -368,6 +370,8 @@ class Corrector:
         equation_3 = (g_r * g_y) - ((freqA * freqG * g_y) / gr_denom - (freqT * freqC * g_r) / gy_denom) * (base3) ** (-1 / a_optimized)
 
         correction = TN93InitialMatrix * abs((2 * a_optimized * (equation_1 + equation_2 + equation_3 - freqA * freqG - freqT * freqC - g_r * g_y)))
+        
+        #reCorrection = self.correct_anomolies(corrected=correction, originalDistances=data)
 
         self.TN93Matrix = [[label] + list(row) for label, row in zip(labels, correction)]
         

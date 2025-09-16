@@ -3,6 +3,10 @@
 *.fasta
 *.fna
 *.csv
+REQ
+RF_distances
+scripts
 correction_output
 csv_correction_output
 test_files
+newicks
