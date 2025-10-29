@@ -3,7 +3,6 @@
 *.fasta
 *.fna
 *.csv
-REQ
 RF_distances
 scripts
 correction_output
